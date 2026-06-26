@@ -116,6 +116,12 @@
       <button class="btn-clock btn-start" id="g1-clock-btn" onclick="toggleClock('g1')">▶ Start</button>
       <button class="btn-clock btn-reset-clock" onclick="resetClock('g1')">↺ Reset</button>
     </div>
+    <div class="clock-btns">
+      <button class="btn-clock btn-reset-clock" onclick="adjClock('g1',-60)">−1 Min</button>
+      <button class="btn-clock btn-reset-clock" onclick="adjClock('g1',-10)">−10 Sec</button>
+      <button class="btn-clock btn-reset-clock" onclick="adjClock('g1',10)">+10 Sec</button>
+      <button class="btn-clock btn-reset-clock" onclick="adjClock('g1',60)">+1 Min</button>
+    </div>
     <button class="btn-reset-game" onclick="resetGame('g1')">Reset Game 1</button>
   </div>
 </div>
@@ -158,6 +164,12 @@
     <div class="clock-btns">
       <button class="btn-clock btn-start" id="g2-clock-btn" onclick="toggleClock('g2')">▶ Start</button>
       <button class="btn-clock btn-reset-clock" onclick="resetClock('g2')">↺ Reset</button>
+    </div>
+    <div class="clock-btns">
+      <button class="btn-clock btn-reset-clock" onclick="adjClock('g2',-60)">−1 Min</button>
+      <button class="btn-clock btn-reset-clock" onclick="adjClock('g2',-10)">−10 Sec</button>
+      <button class="btn-clock btn-reset-clock" onclick="adjClock('g2',10)">+10 Sec</button>
+      <button class="btn-clock btn-reset-clock" onclick="adjClock('g2',60)">+1 Min</button>
     </div>
     <button class="btn-reset-game" onclick="resetGame('g2')">Reset Game 2</button>
   </div>
@@ -229,6 +241,18 @@
 
   function resetClock(g) {
     clocks[g] = {running:false, base:0, startedAt:0};
+    syncClockToState(g);
+    schedulePush();
+    updateClockUI(g);
+  }
+
+  function adjClock(g, deltaSec) {
+    var c = clocks[g];
+    if (c.running) {
+      c.base += Math.floor((Date.now() - c.startedAt) / 1000);
+      c.startedAt = Date.now();
+    }
+    c.base = Math.max(0, c.base + deltaSec);
     syncClockToState(g);
     schedulePush();
     updateClockUI(g);
