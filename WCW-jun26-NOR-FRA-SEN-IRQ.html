@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>ContiStream Overlay</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { background:transparent; font-family:Arial Black,Arial,sans-serif; display:flex; flex-direction:column; gap:10px; padding:16px; width:540px; }
+  .sb-card { background:rgba(26,10,46,0.92); border:2px solid #c9a84c; border-radius:10px; overflow:hidden; }
+  .sb-header { background:#c9a84c; display:flex; align-items:center; justify-content:center; gap:8px; padding:4px 12px; }
+  .sb-header-label { font-size:11px; font-weight:900; color:#1a0a2e; letter-spacing:1.5px; text-transform:uppercase; }
+  .sb-body { display:flex; align-items:center; padding:10px 14px; gap:8px; }
+  .sb-team { display:flex; align-items:center; gap:8px; flex:1; }
+  .sb-team.right { flex-direction:row-reverse; }
+  .sb-flag { font-size:22px; flex-shrink:0; }
+  .sb-name { font-size:20px; font-weight:900; color:#fff; letter-spacing:1.5px; text-transform:uppercase; }
+  .sb-scores { display:flex; align-items:center; flex-shrink:0; }
+  .sb-score-box { background:#2d1054; border:1.5px solid #c9a84c; border-radius:6px; width:44px; height:48px; display:flex; align-items:center; justify-content:center; }
+  .sb-score { font-size:28px; font-weight:900; color:#f5d078; }
+  .sb-vs { font-size:13px; font-weight:700; color:#c9a84c; padding:0 7px; opacity:0.8; }
+  .sb-footer { display:flex; align-items:center; justify-content:space-between; padding:4px 14px 8px; }
+  .sb-status { font-size:11px; font-weight:900; color:#c9a84c; letter-spacing:1.5px; text-transform:uppercase; }
+  .sb-status.live { color:#ff4444; animation:pulse 1.4s ease-in-out infinite; }
+  .sb-status.ht { color:#ff9900; }
+  .sb-clock { font-size:14px; font-weight:900; color:#f5d078; letter-spacing:1px; }
+  .sb-clock.running { color:#ff6666; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+</style>
+</head>
+<body>
+
+<div class="sb-card">
+  <div class="sb-header"><span>&#127942;</span><span class="sb-header-label">FIFA World Cup 2026 &mdash; Group Stage</span><span>&#127942;</span></div>
+  <div class="sb-body">
+    <div class="sb-team"><span class="sb-flag">🇳🇴</span><span class="sb-name">NOR</span></div>
+    <div class="sb-scores">
+      <div class="sb-score-box"><span class="sb-score" id="g1-home">0</span></div>
+      <span class="sb-vs">&mdash;</span>
+      <div class="sb-score-box"><span class="sb-score" id="g1-away">0</span></div>
+    </div>
+    <div class="sb-team right"><span class="sb-flag">🇫🇷</span><span class="sb-name">FRA</span></div>
+  </div>
+  <div class="sb-footer">
+    <span class="sb-status" id="g1-status">Pre-Match</span>
+    <span class="sb-clock" id="g1-clock">00:00</span>
+  </div>
+</div>
+
+<div class="sb-card">
+  <div class="sb-header"><span>&#127942;</span><span class="sb-header-label">FIFA World Cup 2026 &mdash; Group Stage</span><span>&#127942;</span></div>
+  <div class="sb-body">
+    <div class="sb-team"><span class="sb-flag">🇸🇳</span><span class="sb-name">SEN</span></div>
+    <div class="sb-scores">
+      <div class="sb-score-box"><span class="sb-score" id="g2-home">0</span></div>
+      <span class="sb-vs">&mdash;</span>
+      <div class="sb-score-box"><span class="sb-score" id="g2-away">0</span></div>
+    </div>
+    <div class="sb-team right"><span class="sb-flag">🇮🇶</span><span class="sb-name">IRQ</span></div>
+  </div>
+  <div class="sb-footer">
+    <span class="sb-status" id="g2-status">Pre-Match</span>
+    <span class="sb-clock" id="g2-clock">00:00</span>
+  </div>
+</div>
+
+<script>
+  var SUPABASE_URL = 'https://oaxfnqxcitaqtgewkjsb.supabase.co';
+  var SUPABASE_KEY = 'sb_publishable_VlABBj1OgQhWQ9sdjuTFNQ_lh2LI_U1';
+  var API = SUPABASE_URL + '/rest/v1/Scores?order=id.desc&limit=1';
+  var PAIR = 'jun26p1';
+  var STATUS_LABELS = ['Pre-Match','LIVE','Half Time','Full Time'];
+
+  // Clock uses wall-clock timestamps — no drift when tab is backgrounded
+  var clocks = {
+    g1:{running:false,base:0,startedAt:0},
+    g2:{running:false,base:0,startedAt:0}
+  };
+
+  function pad(n){ return n<10?'0'+n:''+n; }
+
+  function currentSecs(g) {
+    var c = clocks[g];
+    if (c.running) return c.base + Math.floor((Date.now()-c.startedAt)/1000);
+    return c.base;
+  }
+
+  function fmtSecs(s){ var m=Math.floor(s/60); return pad(m)+':'+pad(s%60); }
+
+  function applyState(d) {
+    if (!d || d.pair !== PAIR) return;
+    for (var g of ['g1','g2']) {
+      document.getElementById(g+'-home').textContent = d[g].home;
+      document.getElementById(g+'-away').textContent = d[g].away;
+      var lbl = STATUS_LABELS[d[g].statusIdx]||'Pre-Match';
+      var el = document.getElementById(g+'-status');
+      el.textContent = lbl;
+      el.className = 'sb-status'+(lbl==='LIVE'?' live':lbl==='Half Time'?' ht':'');
+      var c = d[g].clock||{running:false,base:0,startedAt:0};
+      clocks[g] = {running:c.running, base:c.base, startedAt:c.startedAt};
+    }
+  }
+
+  function poll() {
+    fetch(API,{headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY}})
+      .then(function(r){return r.json();})
+      .then(function(d){ if(d&&d[0]) applyState(JSON.parse(d[0].data)); })
+      .catch(function(){});
+  }
+
+  // Smooth clock display — reads wall clock directly, no drift
+  setInterval(function(){
+    for (var g of ['g1','g2']) {
+      var sec = currentSecs(g);
+      var running = clocks[g].running;
+      var el = document.getElementById(g+'-clock');
+      el.textContent = fmtSecs(sec);
+      el.className = 'sb-clock'+(running?' running':'');
+    }
+  }, 500);
+
+  poll();
+  setInterval(poll, 2000);
+</script>
+</body>
+</html>
