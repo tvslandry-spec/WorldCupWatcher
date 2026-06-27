@@ -26,17 +26,69 @@ body { background:transparent; font-family:Arial Black,Arial,sans-serif; display
 .sb-clock.running { color:#ff6666; }
 @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
 
-/* Transparent chat below scoreboards */
-.chat-panel { width:100%; display:flex; flex-direction:column; height:120px; overflow:hidden; position:relative; }
+/* Transparent chat */
+.chat-panel { width:100%; display:flex; flex-direction:column; height:100px; overflow:hidden; position:relative; }
 .chat-messages { flex:1; overflow:hidden; padding:4px 8px; display:flex; flex-direction:column; justify-content:flex-end; gap:4px; }
-.chat-msg { font-family:Arial,sans-serif; font-size:13px; line-height:1.5; word-break:break-word; animation:fadeIn 0.3s ease; text-shadow:1px 1px 3px rgba(0,0,0,0.95), -1px -1px 3px rgba(0,0,0,0.95), 1px -1px 3px rgba(0,0,0,0.95), -1px 1px 3px rgba(0,0,0,0.95); }
+.chat-msg { font-family:Arial,sans-serif; font-size:13px; line-height:1.5; word-break:break-word; animation:fadeIn 0.3s ease; text-shadow:1px 1px 3px rgba(0,0,0,0.95),-1px -1px 3px rgba(0,0,0,0.95),1px -1px 3px rgba(0,0,0,0.95),-1px 1px 3px rgba(0,0,0,0.95); }
 .chat-msg .username { font-weight:900; margin-right:4px; }
 .chat-msg .text { color:#ffffff; font-weight:400; }
 @keyframes fadeIn { from{opacity:0;transform:translateY(4px)} to{opacity:1;transform:translateY(0)} }
-.chat-panel::before { content:''; position:absolute; top:0; left:0; right:0; height:30px; background:linear-gradient(to bottom, rgba(0,0,0,0.2), transparent); pointer-events:none; z-index:1; }
+
+/* Sub ticker bar */
+.sub-bar {
+  width:100%;
+  background:rgba(26,10,46,0.92);
+  border:2px solid #c9a84c;
+  border-radius:8px;
+  overflow:hidden;
+  height:32px;
+  display:flex;
+  align-items:center;
+  position:relative;
+}
+.sub-bar-inner {
+  display:flex;
+  align-items:center;
+  white-space:nowrap;
+  position:absolute;
+  left:100%;
+  animation:ticker 18s linear infinite;
+  gap:60px;
+  font-family:Arial,sans-serif;
+  font-size:13px;
+  font-weight:700;
+  color:#f5d078;
+  letter-spacing:0.5px;
+}
+.sub-bar-inner .sub-item { display:inline-flex; align-items:center; gap:6px; }
+.sub-bar-inner .sub-name { color:#ffffff; }
+.sub-bar-inner .sub-type { color:#c9a84c; font-size:11px; }
+@keyframes ticker { 0%{left:100%} 100%{left:-200%} }
+.sub-bar-label {
+  position:absolute;
+  left:0; top:0; bottom:0;
+  background:#c9a84c;
+  display:flex; align-items:center;
+  padding:0 10px;
+  font-size:10px;
+  font-weight:900;
+  color:#1a0a2e;
+  letter-spacing:1.5px;
+  text-transform:uppercase;
+  z-index:2;
+  white-space:nowrap;
+}
 </style>
 </head>
 <body>
+
+<!-- SUB TICKER -->
+<div class="sub-bar">
+  <div class="sub-bar-label">&#127942; New Subs</div>
+  <div class="sub-bar-inner" id="sub-ticker">
+    <span class="sub-item"><span>&#8212;</span><span class="sub-name">Waiting for subscribers...</span></span>
+  </div>
+</div>
 
 <!-- GAME 1 -->
 <div class="sb-card">
@@ -74,6 +126,7 @@ body { background:transparent; font-family:Arial Black,Arial,sans-serif; display
 </div>
 
 <script>
+  // ── SCOREBOARD ───────────────────────────────────────────────
   var SUPABASE_URL = 'https://oaxfnqxcitaqtgewkjsb.supabase.co';
   var SUPABASE_KEY = 'sb_publishable_VlABBj1OgQhWQ9sdjuTFNQ_lh2LI_U1';
   var API = SUPABASE_URL + '/rest/v1/Scores?order=id.desc&limit=1';
@@ -116,9 +169,9 @@ body { background:transparent; font-family:Arial Black,Arial,sans-serif; display
 
   poll(); setInterval(poll,2000);
 
-  // Twitch IRC chat
+  // ── TWITCH CHAT ──────────────────────────────────────────────
   var CHANNEL = 'contikolokotronis';
-  var MAX_MSGS = 5;
+  var MAX_MSGS = 4;
   var msgs = [];
   var COLORS = ['#ff9f9f','#9fff9f','#9f9fff','#ffd49f','#d49fff','#9fffff','#ff9fd4','#ffff9f','#9fd4ff'];
   var userColors = {};
@@ -161,6 +214,67 @@ body { background:transparent; font-family:Arial Black,Arial,sans-serif; display
   }
 
   connectChat();
+
+  // ── SUB TICKER ───────────────────────────────────────────────
+  var CLIENT_ID = 'd4anlmidokt295jqvvtixt0tarzvkb';
+  var TOKEN = 'dsvcnmtdsh2ib2rfdywat0zsapaol5';
+  var USER_ID = '1508126715';
+  var subQueue = [];
+  var lastSubCursor = null;
+
+  function addSubToTicker(name, tier) {
+    subQueue.push({name:name, tier:tier});
+    renderTicker();
+  }
+
+  function tierLabel(tier) {
+    if (tier === '1000') return 'Tier 1 Sub';
+    if (tier === '2000') return 'Tier 2 Sub';
+    if (tier === '3000') return 'Tier 3 Sub';
+    return 'Subscriber';
+  }
+
+  function renderTicker() {
+    var ticker = document.getElementById('sub-ticker');
+    if (subQueue.length === 0) {
+      ticker.innerHTML = '<span class="sub-item"><span>&#8212;</span><span class="sub-name">Waiting for subscribers...</span></span>';
+      return;
+    }
+    var html = '';
+    subQueue.forEach(function(s) {
+      html += '<span class="sub-item">&#127881; <span class="sub-name">'+escHtml(s.name)+'</span> <span class="sub-type">'+s.tier+'</span></span>';
+    });
+    // Duplicate for seamless loop
+    ticker.innerHTML = html + html;
+  }
+
+  function pollSubs() {
+    var url = 'https://api.twitch.tv/helix/subscriptions?broadcaster_id='+USER_ID+'&first=5';
+    fetch(url, {
+      headers: {
+        'Client-Id': CLIENT_ID,
+        'Authorization': 'Bearer ' + TOKEN
+      }
+    })
+    .then(function(r){ return r.json(); })
+    .then(function(data) {
+      if (!data.data) return;
+      var newSubs = [];
+      data.data.forEach(function(sub) {
+        if (sub.user_name.toLowerCase() !== 'contikolokotronis') {
+          newSubs.push({name:sub.user_name, tier:tierLabel(sub.tier)});
+        }
+      });
+      if (newSubs.length > 0) {
+        subQueue = newSubs.slice(0, 10);
+        renderTicker();
+      }
+    })
+    .catch(function(){});
+  }
+
+  pollSubs();
+  setInterval(pollSubs, 30000);
 </script>
 </body>
 </html>
