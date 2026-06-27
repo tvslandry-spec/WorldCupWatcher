@@ -26,6 +26,49 @@ body { background:transparent; font-family:Arial Black,Arial,sans-serif; display
 .sb-clock.running { color:#ff6666; }
 @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
 
+/* Sub goal bar */
+.sub-goal-card {
+  background:rgba(26,10,46,0.92);
+  border:2px solid #c9a84c;
+  border-radius:10px;
+  overflow:hidden;
+  padding:8px 14px 10px;
+}
+.sub-goal-top {
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  margin-bottom:6px;
+}
+.sub-goal-label {
+  font-size:10px;
+  font-weight:900;
+  color:#c9a84c;
+  letter-spacing:1.5px;
+  text-transform:uppercase;
+}
+.sub-goal-count {
+  font-size:13px;
+  font-weight:900;
+  color:#f5d078;
+  letter-spacing:1px;
+}
+.sub-goal-track {
+  width:100%;
+  height:10px;
+  background:#2d1054;
+  border-radius:6px;
+  overflow:hidden;
+  border:1px solid #3a1f6e;
+}
+.sub-goal-fill {
+  height:100%;
+  background:linear-gradient(to right, #9b4dca, #c9a84c);
+  border-radius:6px;
+  transition:width 1s ease;
+  width:0%;
+}
+
 /* Transparent chat */
 .chat-panel { width:100%; display:flex; flex-direction:column; height:100px; overflow:hidden; position:relative; }
 .chat-messages { flex:1; overflow:hidden; padding:4px 8px; display:flex; flex-direction:column; justify-content:flex-end; gap:4px; }
@@ -33,60 +76,18 @@ body { background:transparent; font-family:Arial Black,Arial,sans-serif; display
 .chat-msg .username { font-weight:900; margin-right:4px; }
 .chat-msg .text { color:#ffffff; font-weight:400; }
 @keyframes fadeIn { from{opacity:0;transform:translateY(4px)} to{opacity:1;transform:translateY(0)} }
-
-/* Sub ticker bar */
-.sub-bar {
-  width:100%;
-  background:rgba(26,10,46,0.92);
-  border:2px solid #c9a84c;
-  border-radius:8px;
-  overflow:hidden;
-  height:32px;
-  display:flex;
-  align-items:center;
-  position:relative;
-}
-.sub-bar-inner {
-  display:flex;
-  align-items:center;
-  white-space:nowrap;
-  position:absolute;
-  left:100%;
-  animation:ticker 18s linear infinite;
-  gap:60px;
-  font-family:Arial,sans-serif;
-  font-size:13px;
-  font-weight:700;
-  color:#f5d078;
-  letter-spacing:0.5px;
-}
-.sub-bar-inner .sub-item { display:inline-flex; align-items:center; gap:6px; }
-.sub-bar-inner .sub-name { color:#ffffff; }
-.sub-bar-inner .sub-type { color:#c9a84c; font-size:11px; }
-@keyframes ticker { 0%{left:100%} 100%{left:-200%} }
-.sub-bar-label {
-  position:absolute;
-  left:0; top:0; bottom:0;
-  background:#c9a84c;
-  display:flex; align-items:center;
-  padding:0 10px;
-  font-size:10px;
-  font-weight:900;
-  color:#1a0a2e;
-  letter-spacing:1.5px;
-  text-transform:uppercase;
-  z-index:2;
-  white-space:nowrap;
-}
 </style>
 </head>
 <body>
 
-<!-- SUB TICKER -->
-<div class="sub-bar">
-  <div class="sub-bar-label">&#127942; New Subs</div>
-  <div class="sub-bar-inner" id="sub-ticker">
-    <span class="sub-item"><span>&#8212;</span><span class="sub-name">Waiting for subscribers...</span></span>
+<!-- SUB GOAL BAR -->
+<div class="sub-goal-card">
+  <div class="sub-goal-top">
+    <span class="sub-goal-label">&#127942; Sub Goal — ContiStream</span>
+    <span class="sub-goal-count" id="sub-count">406 / 1000</span>
+  </div>
+  <div class="sub-goal-track">
+    <div class="sub-goal-fill" id="sub-fill" style="width:40.6%"></div>
   </div>
 </div>
 
@@ -215,42 +216,20 @@ body { background:transparent; font-family:Arial Black,Arial,sans-serif; display
 
   connectChat();
 
-  // ── SUB TICKER ───────────────────────────────────────────────
+  // ── SUB GOAL ─────────────────────────────────────────────────
   var CLIENT_ID = 'd4anlmidokt295jqvvtixt0tarzvkb';
   var TOKEN = 'dsvcnmtdsh2ib2rfdywat0zsapaol5';
   var USER_ID = '1508126715';
-  var subQueue = [];
-  var lastSubCursor = null;
+  var SUB_GOAL = 1000;
 
-  function addSubToTicker(name, tier) {
-    subQueue.push({name:name, tier:tier});
-    renderTicker();
+  function updateSubGoal(count) {
+    var pct = Math.min(100, (count / SUB_GOAL) * 100);
+    document.getElementById('sub-count').textContent = count + ' / ' + SUB_GOAL;
+    document.getElementById('sub-fill').style.width = pct.toFixed(1) + '%';
   }
 
-  function tierLabel(tier) {
-    if (tier === '1000') return 'Tier 1 Sub';
-    if (tier === '2000') return 'Tier 2 Sub';
-    if (tier === '3000') return 'Tier 3 Sub';
-    return 'Subscriber';
-  }
-
-  function renderTicker() {
-    var ticker = document.getElementById('sub-ticker');
-    if (subQueue.length === 0) {
-      ticker.innerHTML = '<span class="sub-item"><span>&#8212;</span><span class="sub-name">Waiting for subscribers...</span></span>';
-      return;
-    }
-    var html = '';
-    subQueue.forEach(function(s) {
-      html += '<span class="sub-item">&#127881; <span class="sub-name">'+escHtml(s.name)+'</span> <span class="sub-type">'+s.tier+'</span></span>';
-    });
-    // Duplicate for seamless loop
-    ticker.innerHTML = html + html;
-  }
-
-  function pollSubs() {
-    var url = 'https://api.twitch.tv/helix/subscriptions?broadcaster_id='+USER_ID+'&first=5';
-    fetch(url, {
+  function pollSubCount() {
+    fetch('https://api.twitch.tv/helix/subscriptions?broadcaster_id='+USER_ID+'&first=1', {
       headers: {
         'Client-Id': CLIENT_ID,
         'Authorization': 'Bearer ' + TOKEN
@@ -258,23 +237,15 @@ body { background:transparent; font-family:Arial Black,Arial,sans-serif; display
     })
     .then(function(r){ return r.json(); })
     .then(function(data) {
-      if (!data.data) return;
-      var newSubs = [];
-      data.data.forEach(function(sub) {
-        if (sub.user_name.toLowerCase() !== 'contikolokotronis') {
-          newSubs.push({name:sub.user_name, tier:tierLabel(sub.tier)});
-        }
-      });
-      if (newSubs.length > 0) {
-        subQueue = newSubs.slice(0, 10);
-        renderTicker();
+      if (data && typeof data.total === 'number') {
+        updateSubGoal(data.total);
       }
     })
     .catch(function(){});
   }
 
-  pollSubs();
-  setInterval(pollSubs, 30000);
+  pollSubCount();
+  setInterval(pollSubCount, 30000);
 </script>
 </body>
 </html>
