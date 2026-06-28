@@ -68,12 +68,29 @@
 <div class="selector-wrap">
   <div class="selector-label">Select Match Pair</div>
   <select id="game-select" onchange="switchPair()">
-    <option value="jun26p1">Jun 26 — Norway/France + Senegal/Iraq</option>
-    <option value="jun26p2">Jun 26 — Uruguay/Spain + Cape Verde/Saudi Arabia</option>
-    <option value="jun26p3">Jun 26 — New Zealand/Belgium + Egypt/Iran</option>
-    <option value="jun27p1">Jun 27 — Panama/England + Croatia/Ghana</option>
-    <option value="jun27p2">Jun 27 — Colombia/Portugal + DR Congo/Uzbekistan</option>
-    <option value="jun27p3">Jun 27 — Jordan/Argentina + Algeria/Austria</option>
+    <optgroup label="Group Stage">
+      <option value="jun27p1">Jun 27 — Panama/England + Croatia/Ghana</option>
+      <option value="jun27p2">Jun 27 — Colombia/Portugal + DR Congo/Uzbekistan</option>
+      <option value="jun27p3">Jun 27 — Jordan/Argentina + Algeria/Austria</option>
+    </optgroup>
+    <optgroup label="Round of 32">
+      <option value="r32_01">Jun 28 — South Africa vs Canada</option>
+      <option value="r32_02">Jun 29 — Brazil vs Japan</option>
+      <option value="r32_03">Jun 29 — Germany vs Paraguay</option>
+      <option value="r32_04">Jun 29 — Netherlands vs Morocco</option>
+      <option value="r32_05">Jun 30 — Ivory Coast vs Norway</option>
+      <option value="r32_06">Jun 30 — France vs Sweden</option>
+      <option value="r32_07">Jun 30 — Mexico vs TBD</option>
+      <option value="r32_08">Jul 1 — England vs TBD</option>
+      <option value="r32_09">Jul 1 — Belgium vs TBD</option>
+      <option value="r32_10">Jul 1 — USA vs Bosnia &amp; Herzegovina</option>
+      <option value="r32_11">Jul 2 — Spain vs TBD</option>
+      <option value="r32_12">Jul 2 — Portugal vs Ghana</option>
+      <option value="r32_13">Jul 2 — Switzerland vs TBD</option>
+      <option value="r32_14">Jul 3 — Australia vs Egypt</option>
+      <option value="r32_15">Jul 3 — Argentina vs Cape Verde</option>
+      <option value="r32_16">Jul 3 — Colombia vs TBD</option>
+    </optgroup>
   </select>
 </div>
 
@@ -109,6 +126,8 @@
       <button class="btn-status" onclick="setStatus('g1',1)">Live</button>
       <button class="btn-status" onclick="setStatus('g1',2)">HT</button>
       <button class="btn-status" onclick="setStatus('g1',3)">FT</button>
+      <button class="btn-status" onclick="setStatus('g1',4)">ET</button>
+      <button class="btn-status" onclick="setStatus('g1',5)">Pens</button>
     </div>
     <div class="section-label">Match Clock</div>
     <div class="clock-display" id="g1-clock-display">00:00</div>
@@ -160,6 +179,8 @@
       <button class="btn-status" onclick="setStatus('g2',1)">Live</button>
       <button class="btn-status" onclick="setStatus('g2',2)">HT</button>
       <button class="btn-status" onclick="setStatus('g2',3)">FT</button>
+      <button class="btn-status" onclick="setStatus('g2',4)">ET</button>
+      <button class="btn-status" onclick="setStatus('g2',5)">Pens</button>
     </div>
     <div class="section-label">Match Clock</div>
     <div class="clock-display" id="g2-clock-display">00:00</div>
