@@ -5,28 +5,18 @@
 <title>ContiStream Overlay</title>
 <style>
 * { margin:0; padding:0; box-sizing:border-box; }
-body { background:transparent; font-family:Arial Black,Arial,sans-serif; padding:12px; width:380px; }
-.widget { background:rgba(14,5,32,0.93); border:2px solid #c9a84c; border-radius:10px; overflow:hidden; }
+html, body { width:1920px; height:1080px; background:transparent; font-family:Arial Black,Arial,sans-serif; overflow:hidden; position:relative; }
 
+.widget { position:absolute; top:24px; right:24px; width:380px; background:rgba(14,5,32,0.93); border:2px solid #c9a84c; border-radius:10px; overflow:hidden; }
 .widget-title { background:#c9a84c; display:flex; align-items:center; justify-content:space-between; padding:4px 10px; }
 .widget-title-left { font-size:9px; font-weight:900; color:#1a0a2e; letter-spacing:1.5px; text-transform:uppercase; }
 .widget-title-right { font-size:9px; font-weight:900; color:#1a0a2e; letter-spacing:1px; }
-
 .sub-row { display:flex; align-items:center; gap:8px; padding:5px 10px; border-bottom:1px solid rgba(201,168,76,0.2); }
 .sub-label { font-size:8px; font-weight:900; color:#c9a84c; letter-spacing:1px; text-transform:uppercase; white-space:nowrap; }
 .sub-track { flex:1; height:6px; background:#2d1054; border-radius:3px; overflow:hidden; }
 .sub-fill { height:100%; background:linear-gradient(to right,#9b4dca,#c9a84c); border-radius:3px; transition:width 1s ease; width:41.2%; }
 .sub-count { font-size:9px; font-weight:900; color:#f5d078; white-space:nowrap; }
-
-/* Score row: 3 equal columns */
-.score-row {
-  display: grid;
-  grid-template-columns: 1fr auto 1fr;
-  align-items: center;
-  padding: 8px 10px;
-  border-bottom: 1px solid rgba(201,168,76,0.2);
-  gap: 6px;
-}
+.score-row { display:grid; grid-template-columns:1fr auto 1fr; align-items:center; padding:8px 10px; border-bottom:1px solid rgba(201,168,76,0.2); gap:6px; }
 .team-home { display:flex; align-items:center; gap:5px; overflow:hidden; }
 .team-away { display:flex; align-items:center; gap:5px; flex-direction:row-reverse; overflow:hidden; }
 .flag { font-size:14px; flex-shrink:0; }
@@ -35,44 +25,40 @@ body { background:transparent; font-family:Arial Black,Arial,sans-serif; padding
 .score-box { background:#2d1054; border:1.5px solid #c9a84c; border-radius:4px; width:30px; height:30px; display:flex; align-items:center; justify-content:center; }
 .score-num { font-size:18px; font-weight:900; color:#f5d078; }
 .score-dash { font-size:10px; color:#c9a84c; padding:0 4px; }
-
-/* Meta row: status left, clock center, pushup right — fixed widths so nothing bleeds */
-.meta-row {
-  display: grid;
-  grid-template-columns: 80px 1fr 90px;
-  align-items: center;
-  padding: 5px 10px;
-  border-bottom: 1px solid rgba(201,168,76,0.2);
-}
+.meta-row { display:grid; grid-template-columns:80px 1fr 90px; align-items:center; padding:5px 10px; border-bottom:1px solid rgba(201,168,76,0.2); }
 .status-label { font-size:9px; font-weight:900; color:#c9a84c; letter-spacing:1.5px; text-transform:uppercase; white-space:nowrap; }
 .status-label.live { color:#ff4444; animation:pulse 1.4s ease-in-out infinite; }
 .status-label.ht { color:#ff9900; }
 .status-label.et { color:#9b4dca; }
 .clock-label { font-size:13px; font-weight:900; color:#f5d078; letter-spacing:1px; text-align:center; }
 .clock-label.running { color:#ff6666; }
-
-/* Pushup badge — fixed width, no overflow */
-.pushup-badge {
-  display: flex;
-  align-items: center;
-  gap: 3px;
-  background: rgba(201,168,76,0.12);
-  border: 1px solid rgba(201,168,76,0.4);
-  border-radius: 4px;
-  padding: 2px 5px;
-  justify-content: flex-end;
-  width: 88px;
-  overflow: hidden;
-}
+.pushup-badge { display:flex; align-items:center; gap:3px; background:rgba(201,168,76,0.12); border:1px solid rgba(201,168,76,0.4); border-radius:4px; padding:2px 5px; justify-content:flex-end; width:88px; overflow:hidden; }
 .pushup-badge-icon { font-size:10px; flex-shrink:0; }
 .pushup-badge-count { font-size:11px; font-weight:900; color:#f5d078; flex-shrink:0; }
 .pushup-badge-count.pop { animation:pop 0.5s ease; }
 .pushup-badge-label { font-size:7px; color:#9b7fd4; letter-spacing:0.5px; text-transform:uppercase; white-space:nowrap; flex-shrink:0; }
-
 .chat-area { padding:5px 10px 6px; display:flex; flex-direction:column; gap:3px; min-height:50px; }
 .chat-msg { font-family:Arial,sans-serif; font-size:11px; line-height:1.3; word-break:break-word; animation:fadeIn 0.3s ease; text-shadow:1px 1px 2px rgba(0,0,0,0.9),-1px -1px 2px rgba(0,0,0,0.9); }
 .chat-msg .username { font-weight:900; margin-right:3px; }
 .chat-msg .text { color:#fff; font-weight:400; }
+
+/* SPINNING TROPHY — bottom left */
+.trophy-wrap {
+  position: absolute;
+  bottom: 24px;
+  left: 24px;
+  width: 140px;
+  height: 224px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.trophy-spin {
+  animation: spin360 6s linear infinite;
+  transform-origin: center center;
+  filter: drop-shadow(0 0 12px rgba(201,168,76,0.4));
+}
+@keyframes spin360 { from { transform: rotateY(0deg); } to { transform: rotateY(360deg); } }
 
 @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
 @keyframes pop { 0%{transform:scale(1);color:#f5d078} 30%{transform:scale(1.5);color:#ff4444} 60%{transform:scale(0.9);color:#ff9900} 100%{transform:scale(1);color:#f5d078} }
@@ -80,19 +66,17 @@ body { background:transparent; font-family:Arial Black,Arial,sans-serif; padding
 </style>
 </head>
 <body>
-<div class="widget">
 
+<div class="widget">
   <div class="widget-title">
     <span class="widget-title-left">&#127942; FIFA World Cup 2026 &mdash; R32</span>
     <span class="widget-title-right">ContiStream</span>
   </div>
-
   <div class="sub-row">
     <span class="sub-label">Sub Goal</span>
     <div class="sub-track"><div class="sub-fill" id="sub-fill"></div></div>
     <span class="sub-count" id="sub-count">412 / 1000</span>
   </div>
-
   <div class="score-row">
     <div class="team-home">
       <span class="flag">&#x1F1EB;&#x1F1F7;</span>
@@ -108,7 +92,6 @@ body { background:transparent; font-family:Arial Black,Arial,sans-serif; padding
       <span class="team-name">SWE</span>
     </div>
   </div>
-
   <div class="meta-row">
     <span class="status-label" id="g1-status">Pre-Match</span>
     <span class="clock-label" id="g1-clock">00:00</span>
@@ -118,9 +101,86 @@ body { background:transparent; font-family:Arial Black,Arial,sans-serif; padding
       <span class="pushup-badge-label">push-ups</span>
     </div>
   </div>
-
   <div class="chat-area" id="chat-messages"></div>
+</div>
 
+<!-- SPINNING TROPHY BOTTOM LEFT -->
+<div class="trophy-wrap">
+  <div class="trophy-spin">
+<svg viewBox="0 0 200 320" width="140" height="224" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="gold-main" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#8a6420"/>
+      <stop offset="25%" style="stop-color:#f5d078"/>
+      <stop offset="50%" style="stop-color:#ffe9a0"/>
+      <stop offset="75%" style="stop-color:#c9a84c"/>
+      <stop offset="100%" style="stop-color:#8a6420"/>
+    </linearGradient>
+    <linearGradient id="stem-grad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#7a5418"/>
+      <stop offset="30%" style="stop-color:#f5d078"/>
+      <stop offset="50%" style="stop-color:#ffe9a0"/>
+      <stop offset="70%" style="stop-color:#c9a84c"/>
+      <stop offset="100%" style="stop-color:#7a5418"/>
+    </linearGradient>
+    <linearGradient id="base-dark" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#2a1a04"/>
+      <stop offset="100%" style="stop-color:#0a0505"/>
+    </linearGradient>
+    <linearGradient id="globe-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#2a8adf"/>
+      <stop offset="100%" style="stop-color:#0a4a8a"/>
+    </linearGradient>
+    <filter id="glow"><feGaussianBlur stdDeviation="2.5" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+    <filter id="trophy-shadow"><feDropShadow dx="0" dy="3" stdDeviation="4" flood-color="#c9a84c" flood-opacity="0.5"/></filter>
+  </defs>
+  <rect x="20" y="288" width="160" height="22" rx="5" fill="url(#base-dark)" stroke="#c9a84c" stroke-width="1.5"/>
+  <rect x="22" y="289" width="156" height="3" rx="2" fill="rgba(201,168,76,0.3)"/>
+  <rect x="35" y="272" width="130" height="20" rx="4" fill="url(#base-dark)" stroke="#c9a84c" stroke-width="1.5"/>
+  <rect x="37" y="273" width="126" height="3" rx="2" fill="rgba(201,168,76,0.25)"/>
+  <rect x="52" y="260" width="96" height="16" rx="3" fill="url(#base-dark)" stroke="#c9a84c" stroke-width="1.5"/>
+  <text x="100" y="283" text-anchor="middle" font-family="Arial Black,Arial" font-size="7" font-weight="900" fill="#c9a84c" letter-spacing="2.5" opacity="0.9">CONTISTREAM</text>
+  <path d="M 85 258 Q 82 248 84 232 L 116 232 Q 118 248 115 258 Z" fill="url(#stem-grad)"/>
+  <path d="M 93 234 Q 92 246 93 256 L 96 256 Q 95 246 96 234 Z" fill="rgba(255,240,180,0.35)"/>
+  <ellipse cx="100" cy="232" rx="22" ry="7" fill="url(#gold-main)" stroke="#8a6420" stroke-width="1"/>
+  <ellipse cx="100" cy="230" rx="20" ry="5" fill="#ffe9a0" opacity="0.5"/>
+  <rect x="88" y="210" width="24" height="24" rx="3" fill="url(#stem-grad)"/>
+  <rect x="92" y="211" width="6" height="22" rx="2" fill="rgba(255,240,180,0.3)"/>
+  <ellipse cx="100" cy="210" rx="22" ry="7" fill="url(#gold-main)" stroke="#8a6420" stroke-width="1"/>
+  <ellipse cx="100" cy="208" rx="20" ry="5" fill="#ffe9a0" opacity="0.4"/>
+  <path d="M 46 195 Q 44 175 46 155 Q 48 130 52 110 Q 56 88 100 82 Q 144 88 148 110 Q 152 130 154 155 Q 156 175 154 195 Q 148 215 100 218 Q 52 215 46 195 Z" fill="url(#gold-main)" filter="url(#trophy-shadow)"/>
+  <path d="M 54 193 Q 53 174 55 155 Q 57 132 61 113 Q 65 93 100 88 Q 135 93 139 113 Q 143 132 145 155 Q 147 174 146 193 Q 140 210 100 212 Q 60 210 54 193 Z" fill="rgba(0,0,0,0.12)"/>
+  <path d="M 68 95 Q 64 115 63 140 Q 62 165 66 188 Q 72 175 72 148 Q 72 118 75 95 Z" fill="rgba(255,240,180,0.35)"/>
+  <path d="M 88 86 Q 100 83 112 86 Q 104 90 100 92 Q 96 90 88 86 Z" fill="rgba(255,240,180,0.5)"/>
+  <ellipse cx="100" cy="84" rx="52" ry="11" fill="url(#gold-main)" stroke="#8a6420" stroke-width="1"/>
+  <ellipse cx="100" cy="82" rx="50" ry="9" fill="#ffe9a0" opacity="0.6"/>
+  <ellipse cx="100" cy="216" rx="26" ry="6" fill="url(#gold-main)" stroke="#8a6420" stroke-width="1"/>
+  <path d="M 48 110 C 10 110 5 140 10 165 C 14 185 35 195 48 193" fill="none" stroke="url(#gold-main)" stroke-width="14" stroke-linecap="round" filter="url(#trophy-shadow)"/>
+  <path d="M 48 110 C 10 110 5 140 10 165 C 14 185 35 195 48 193" fill="none" stroke="rgba(255,240,180,0.4)" stroke-width="5" stroke-linecap="round"/>
+  <path d="M 152 110 C 190 110 195 140 190 165 C 186 185 165 195 152 193" fill="none" stroke="url(#gold-main)" stroke-width="14" stroke-linecap="round" filter="url(#trophy-shadow)"/>
+  <path d="M 152 110 C 190 110 195 140 190 165 C 186 185 165 195 152 193" fill="none" stroke="rgba(255,240,180,0.4)" stroke-width="5" stroke-linecap="round"/>
+  <circle cx="100" cy="68" r="22" fill="url(#globe-grad)" stroke="#c9a84c" stroke-width="2" filter="url(#glow)"/>
+  <path d="M 84 62 Q 90 56 96 60 Q 92 66 88 68 Z" fill="rgba(100,180,80,0.7)"/>
+  <path d="M 100 58 Q 108 54 114 60 Q 110 68 104 66 Q 100 64 100 58 Z" fill="rgba(100,180,80,0.7)"/>
+  <path d="M 86 72 Q 92 70 96 74 Q 94 80 88 78 Z" fill="rgba(100,180,80,0.6)"/>
+  <path d="M 104 72 Q 110 68 116 72 Q 114 80 108 78 Z" fill="rgba(100,180,80,0.6)"/>
+  <ellipse cx="100" cy="68" rx="22" ry="12" fill="none" stroke="rgba(201,168,76,0.5)" stroke-width="0.8"/>
+  <line x1="100" y1="46" x2="100" y2="90" stroke="rgba(201,168,76,0.5)" stroke-width="0.8"/>
+  <path d="M 79 62 Q 100 56 121 62" fill="none" stroke="rgba(201,168,76,0.4)" stroke-width="0.8"/>
+  <path d="M 79 74 Q 100 80 121 74" fill="none" stroke="rgba(201,168,76,0.4)" stroke-width="0.8"/>
+  <circle cx="92" cy="60" r="6" fill="rgba(255,255,255,0.18)"/>
+  <circle cx="83" cy="118" r="5.5" fill="#8a6420"/>
+  <path d="M 83 123 L 79 145 L 84 145 L 85 133 L 87 145 L 92 145 L 88 123 Z" fill="#8a6420"/>
+  <line x1="84" y1="126" x2="88" y2="108" stroke="#8a6420" stroke-width="3.5" stroke-linecap="round"/>
+  <line x1="81" y1="145" x2="78" y2="158" stroke="#8a6420" stroke-width="3" stroke-linecap="round"/>
+  <line x1="86" y1="145" x2="87" y2="158" stroke="#8a6420" stroke-width="3" stroke-linecap="round"/>
+  <circle cx="117" cy="118" r="5.5" fill="#8a6420"/>
+  <path d="M 117 123 L 113 145 L 118 145 L 119 133 L 121 145 L 126 145 L 122 123 Z" fill="#8a6420"/>
+  <line x1="116" y1="126" x2="112" y2="108" stroke="#8a6420" stroke-width="3.5" stroke-linecap="round"/>
+  <line x1="114" y1="145" x2="113" y2="158" stroke="#8a6420" stroke-width="3" stroke-linecap="round"/>
+  <line x1="120" y1="145" x2="122" y2="158" stroke="#8a6420" stroke-width="3" stroke-linecap="round"/>
+</svg>
+  </div>
 </div>
 
 <script>
