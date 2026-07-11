@@ -366,16 +366,25 @@
         clocks[g].base+=Math.floor((Date.now()-clocks[g].startedAt)/1000);
         clocks[g].running=false; clocks[g].startedAt=0;
       }
-      clocks[g].base=2700; // 45 minutes in seconds
+      clocks[g].base=2700;
       state[g].clock={running:false,base:2700,startedAt:0};
     }
-    // FT: stop the clock wherever it is
+    // FT: stop clock wherever it is
     if(idx===3){
       if(clocks[g].running){
         clocks[g].base+=Math.floor((Date.now()-clocks[g].startedAt)/1000);
         clocks[g].running=false; clocks[g].startedAt=0;
       }
       state[g].clock={running:false,base:clocks[g].base,startedAt:0};
+    }
+    // ET: pause clock and reset to 90:00
+    if(idx===4){
+      if(clocks[g].running){
+        clocks[g].base+=Math.floor((Date.now()-clocks[g].startedAt)/1000);
+        clocks[g].running=false; clocks[g].startedAt=0;
+      }
+      clocks[g].base=5400;
+      state[g].clock={running:false,base:5400,startedAt:0};
     }
     renderCtrl();schedulePush();
   }
