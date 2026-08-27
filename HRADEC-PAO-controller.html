@@ -137,7 +137,9 @@
   function resetAll(){resetGame('g1');}
   var STATUS_CLASSES=['active','active-live','active-ht','active','active-et','active'];
   function renderCtrl(){document.getElementById('c-g1-home').textContent=state.g1.home;document.getElementById('c-g1-away').textContent=state.g1.away;var btns=document.getElementById('g1-status-btns').children;for(var i=0;i<btns.length;i++){btns[i].className='btn-status';if(i===state.g1.statusIdx)btns[i].className='btn-status '+STATUS_CLASSES[i];}}
-  pullState(); setInterval(pullState,5000);
+  // Push fresh state on load to create own Supabase row
+  pushState();
+  setInterval(pullState,5000);
 </script>
 </body>
 </html>
