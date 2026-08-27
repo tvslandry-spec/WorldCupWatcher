@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>ContiStream Controller</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  body { background:#000d05; font-family:Arial Black,Arial,sans-serif; color:#fff; min-height:100vh; padding:12px; max-width:480px; margin:0 auto; }
+  .header { text-align:center; padding:12px 0 16px; border-bottom:1px solid #007a3d; margin-bottom:16px; }
+  .header-title { font-size:16px; font-weight:900; color:#00a651; letter-spacing:2px; text-transform:uppercase; }
+  .header-sub { font-size:10px; color:#33cc77; letter-spacing:1px; margin-top:3px; }
+  .sync-bar { display:flex; align-items:center; justify-content:center; gap:8px; margin-bottom:14px; font-size:11px; color:#33cc77; }
+  .sync-dot { width:8px; height:8px; border-radius:50%; flex-shrink:0; }
+  .ok{background:#00a651;} .error{background:#ff4444;} .pending{background:#ffcc00;animation:pulse 1s ease-in-out infinite;}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.3}}
+  .game-panel { background:#001a0a; border:1.5px solid #007a3d; border-radius:12px; margin-bottom:14px; overflow:hidden; }
+  .game-panel-header { background:#007a3d; padding:10px 14px; }
+  .game-panel-label { font-size:13px; font-weight:900; color:#fff; letter-spacing:1px; text-transform:uppercase; }
+  .game-body { padding:14px; }
+  .score-row { display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:14px; }
+  .team-block { display:flex; flex-direction:column; align-items:center; gap:6px; flex:1; }
+  .team-name-label { font-size:13px; font-weight:900; color:#fff; text-align:center; }
+  .score-display { font-size:32px; font-weight:900; color:#33cc77; background:#001a0a; border:2px solid #00a651; border-radius:8px; width:58px; height:58px; display:flex; align-items:center; justify-content:center; }
+  .score-btns { display:flex; gap:6px; }
+  .btn-score { background:#001a0a; border:1.5px solid #00a651; border-radius:8px; color:#33cc77; font-size:22px; font-weight:900; width:44px; height:44px; display:flex; align-items:center; justify-content:center; cursor:pointer; }
+  .btn-score:active { background:#003320; transform:scale(0.95); }
+  .vs-divider { font-size:14px; color:#00a651; opacity:0.6; flex-shrink:0; padding-bottom:30px; }
+  .section-label { font-size:10px; color:#33cc77; letter-spacing:1.5px; text-transform:uppercase; margin-bottom:7px; }
+  .status-btns { display:flex; gap:5px; margin-bottom:14px; flex-wrap:wrap; }
+  .btn-status { background:#001a0a; border:1.5px solid #007a3d; border-radius:8px; color:#33cc77; font-family:Arial Black,Arial,sans-serif; font-size:10px; font-weight:900; padding:10px 6px; cursor:pointer; flex:1; text-align:center; text-transform:uppercase; }
+  .btn-status.active{background:#00a651;color:#fff;border-color:#00a651;}
+  .btn-status.active-live{background:#ff4444;color:#fff;border-color:#ff4444;}
+  .btn-status.active-ht{background:#ffcc00;color:#000;border-color:#ffcc00;}
+  .btn-status.active-et{background:#00ccff;color:#000;border-color:#00ccff;}
+  .clock-display { font-size:36px; font-weight:900; color:#33cc77; text-align:center; background:#001a0a; border:2px solid #007a3d; border-radius:8px; padding:10px; margin-bottom:10px; letter-spacing:2px; }
+  .clock-display.running { border-color:#ff4444; color:#66ff99; }
+  .clock-btns { display:flex; gap:8px; margin-bottom:8px; }
+  .clock-adj { display:flex; gap:5px; margin-bottom:14px; flex-wrap:wrap; }
+  .btn-clock { flex:1; padding:12px 6px; border-radius:8px; font-family:Arial Black,Arial,sans-serif; font-size:12px; font-weight:900; text-transform:uppercase; cursor:pointer; border:1.5px solid; text-align:center; }
+  .btn-start{background:#001a0a;border-color:#00a651;color:#00a651;}
+  .btn-start.running{background:#1a0000;border-color:#ff4444;color:#ff4444;}
+  .btn-adj{background:#001a0a;border-color:#007a3d;color:#33cc77;flex:1;padding:8px 4px;font-size:10px;}
+  .btn-reset-clock{background:#001a0a;border-color:#007a3d;color:#33cc77;}
+  .btn-reset-game{width:100%;padding:12px;background:transparent;border:1.5px solid #007a3d;border-radius:8px;color:#33cc77;font-family:Arial Black,Arial,sans-serif;font-size:11px;font-weight:900;text-transform:uppercase;cursor:pointer;}
+  .btn-reset-all{width:100%;padding:14px;background:transparent;border:1.5px solid #ff4444;border-radius:8px;color:#ff4444;font-family:Arial Black,Arial,sans-serif;font-size:13px;font-weight:900;text-transform:uppercase;cursor:pointer;margin-top:10px;}
+  .btn-reset-all:active{background:#ff4444;color:#fff;}
+</style>
+</head>
+<body>
+<div class="header">
+  <div class="header-title">&#9917; ContiStream Controller</div>
+  <div class="header-sub">Hradec Kr&#xe1;lov&#xe9; vs Panathinaikos &mdash; UECL Playoff Leg 2</div>
+</div>
+<div class="sync-bar">
+  <span class="sync-dot pending" id="sync-dot"></span>
+  <span id="sync-label">Connecting...</span>
+</div>
+<div class="game-panel">
+  <div class="game-panel-header"><span class="game-panel-label">&#x1F1E8;&#x1F1FF; Hradec Kr&#xe1;lov&#xe9; vs Panathinaikos &#x1F1EC;&#x1F1F7;</span></div>
+  <div class="game-body">
+    <div class="score-row">
+      <div class="team-block">
+        <div class="team-name-label">HRADEC</div>
+        <div class="score-display" id="c-g1-home">0</div>
+        <div class="score-btns">
+          <button class="btn-score" onclick="adj('g1','home',-1)">&#8722;</button>
+          <button class="btn-score" onclick="adj('g1','home',1)">+</button>
+        </div>
+      </div>
+      <div class="vs-divider">VS</div>
+      <div class="team-block">
+        <div class="team-name-label">PAO</div>
+        <div class="score-display" id="c-g1-away">0</div>
+        <div class="score-btns">
+          <button class="btn-score" onclick="adj('g1','away',-1)">&#8722;</button>
+          <button class="btn-score" onclick="adj('g1','away',1)">+</button>
+        </div>
+      </div>
+    </div>
+    <div class="section-label">Status</div>
+    <div class="status-btns" id="g1-status-btns">
+      <button class="btn-status active" onclick="setStatus('g1',0)">Pre</button>
+      <button class="btn-status" onclick="setStatus('g1',1)">Live</button>
+      <button class="btn-status" onclick="setStatus('g1',2)">HT</button>
+      <button class="btn-status" onclick="setStatus('g1',3)">FT</button>
+      <button class="btn-status" onclick="setStatus('g1',4)">ET</button>
+      <button class="btn-status" onclick="setStatus('g1',5)">Pens</button>
+    </div>
+    <div class="section-label">Match Clock</div>
+    <div class="clock-display" id="g1-clock-display">00:00</div>
+    <div class="clock-btns">
+      <button class="btn-clock btn-start" id="g1-clock-btn" onclick="toggleClock('g1')">&#9654; Start</button>
+      <button class="btn-clock btn-reset-clock" onclick="resetClock('g1')">&#8635; Reset</button>
+    </div>
+    <div class="clock-adj">
+      <button class="btn-clock btn-adj" onclick="adjClock('g1',-600)">-10m</button>
+      <button class="btn-clock btn-adj" onclick="adjClock('g1',-60)">-1m</button>
+      <button class="btn-clock btn-adj" onclick="adjClock('g1',-10)">-10s</button>
+      <button class="btn-clock btn-adj" onclick="adjClock('g1',-1)">-1s</button>
+      <button class="btn-clock btn-adj" onclick="adjClock('g1',1)">+1s</button>
+      <button class="btn-clock btn-adj" onclick="adjClock('g1',10)">+10s</button>
+      <button class="btn-clock btn-adj" onclick="adjClock('g1',60)">+1m</button>
+      <button class="btn-clock btn-adj" onclick="adjClock('g1',600)">+10m</button>
+    </div>
+    <button class="btn-reset-game" onclick="resetGame('g1')">Reset Game</button>
+  </div>
+</div>
+<button class="btn-reset-all" onclick="resetAll()">&#9888; Reset All</button>
+<script>
+  var SUPABASE_URL='https://oaxfnqxcitaqtgewkjsb.supabase.co';
+  var SUPABASE_KEY='sb_publishable_VlABBj1OgQhWQ9sdjuTFNQ_lh2LI_U1';
+  var API=SUPABASE_URL+'/rest/v1/Scores';
+  var HEADERS={'Content-Type':'application/json','apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY,'Prefer':'return=minimal'};
+  var rowId=null,pushTimer=null;
+  var clocks={g1:{running:false,base:0,startedAt:0}};
+  var state={pair:'hradec_pao',g1:{home:0,away:0,statusIdx:0,clock:{running:false,base:0,startedAt:0}}};
+  function setSyncStatus(s,msg){var dot=document.getElementById('sync-dot');dot.className='sync-dot '+s;document.getElementById('sync-label').textContent=msg||(s==='ok'?'Synced':s==='error'?'Sync error':'Syncing...');}
+  function pushState(){setSyncStatus('pending');var body=JSON.stringify({data:JSON.stringify(state)});if(rowId){fetch(API+'?id=eq.'+rowId,{method:'PATCH',headers:HEADERS,body:body}).then(function(r){setSyncStatus(r.ok?'ok':'error');}).catch(function(){setSyncStatus('error');});}else{fetch(API,{method:'POST',headers:Object.assign({},HEADERS,{'Prefer':'return=representation'}),body:body}).then(function(r){return r.json();}).then(function(d){if(d&&d[0])rowId=d[0].id;setSyncStatus('ok');}).catch(function(){setSyncStatus('error');});}}
+  function schedulePush(){clearTimeout(pushTimer);pushTimer=setTimeout(pushState,300);}
+  function pullState(){fetch(API+'?order=id.desc&limit=1',{headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY}}).then(function(r){return r.json();}).then(function(d){if(d&&d[0]){rowId=d[0].id;var parsed=JSON.parse(d[0].data);if(parsed.pair==='hradec_pao'){state=parsed;var c=state.g1.clock||{running:false,base:0,startedAt:0};clocks.g1={running:c.running,base:c.base,startedAt:c.startedAt};renderCtrl();}}setSyncStatus('ok');}).catch(function(){setSyncStatus('error');});}
+  function pad(n){return n<10?'0'+n:''+n;}
+  function toggleClock(g){var c=clocks[g];if(c.running){c.base+=Math.floor((Date.now()-c.startedAt)/1000);c.running=false;c.startedAt=0;}else{c.startedAt=Date.now();c.running=true;}state[g].clock={running:c.running,base:c.base,startedAt:c.startedAt};schedulePush();updateClockUI(g);}
+  function resetClock(g){clocks[g]={running:false,base:0,startedAt:0};state[g].clock={running:false,base:0,startedAt:0};schedulePush();updateClockUI(g);}
+  function adjClock(g,delta){var c=clocks[g];if(c.running){c.base+=Math.floor((Date.now()-c.startedAt)/1000);c.startedAt=Date.now();}c.base=Math.max(0,c.base+delta);state[g].clock={running:c.running,base:c.base,startedAt:c.startedAt};schedulePush();updateClockUI(g);}
+  function updateClockUI(g){var c=clocks[g];var sec=c.running?c.base+Math.floor((Date.now()-c.startedAt)/1000):c.base;var el=document.getElementById(g+'-clock-display');el.textContent=pad(Math.floor(sec/60))+':'+pad(sec%60);el.className='clock-display'+(c.running?' running':'');var btn=document.getElementById(g+'-clock-btn');btn.className='btn-clock btn-start'+(c.running?' running':'');btn.innerHTML=c.running?'&#9646;&#9646; Pause':'&#9654; Start';}
+  setInterval(function(){updateClockUI('g1');},500);
+  function adj(g,side,delta){state[g][side]=Math.max(0,state[g][side]+delta);renderCtrl();schedulePush();}
+  function setStatus(g,idx){
+    state[g].statusIdx=idx;
+    if(idx===2){if(clocks[g].running){clocks[g].base+=Math.floor((Date.now()-clocks[g].startedAt)/1000);clocks[g].running=false;clocks[g].startedAt=0;}clocks[g].base=2700;state[g].clock={running:false,base:2700,startedAt:0};}
+    if(idx===3){if(clocks[g].running){clocks[g].base+=Math.floor((Date.now()-clocks[g].startedAt)/1000);clocks[g].running=false;clocks[g].startedAt=0;}state[g].clock={running:false,base:clocks[g].base,startedAt:0};}
+    if(idx===4){if(clocks[g].running){clocks[g].base+=Math.floor((Date.now()-clocks[g].startedAt)/1000);clocks[g].running=false;clocks[g].startedAt=0;}clocks[g].base=5400;state[g].clock={running:false,base:5400,startedAt:0};}
+    renderCtrl();schedulePush();
+  }
+  function resetGame(g){clocks[g]={running:false,base:0,startedAt:0};state[g]={home:0,away:0,statusIdx:0,clock:{running:false,base:0,startedAt:0}};renderCtrl();updateClockUI(g);schedulePush();}
+  function resetAll(){resetGame('g1');}
+  var STATUS_CLASSES=['active','active-live','active-ht','active','active-et','active'];
+  function renderCtrl(){document.getElementById('c-g1-home').textContent=state.g1.home;document.getElementById('c-g1-away').textContent=state.g1.away;var btns=document.getElementById('g1-status-btns').children;for(var i=0;i<btns.length;i++){btns[i].className='btn-status';if(i===state.g1.statusIdx)btns[i].className='btn-status '+STATUS_CLASSES[i];}}
+  // Push fresh state on load to create own Supabase row
+  pushState();
+  setInterval(pullState,5000);
+</script>
+</body>
+</html>
